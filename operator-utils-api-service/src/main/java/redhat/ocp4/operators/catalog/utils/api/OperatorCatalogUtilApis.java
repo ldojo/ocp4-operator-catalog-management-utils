@@ -43,7 +43,7 @@ import redhat.ocp4.operators.catalog.utils.dto.OperatorDetails;
 @RestController
 public class OperatorCatalogUtilApis {
 	
-	@Value("${operatorhub.tar.gz.file:/opt/operatorhub.tar.gz}")
+	@Value("${operatorhub.tar.gz.file:/opt/operatorhub/operatorhub.tar.gz}")
 	private String operatorHubFilePath;
 
 	@ApiOperation(value = "produces a unique list of all of the images referenced in a tar.gz catalog manifests file")
