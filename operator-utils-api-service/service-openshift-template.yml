@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: operator-catalog-utils 
+  annotations:
+    description: "A template to instantiate the operator-catalog-utils service"
+    tags: "operator-catalog-utils,operators"
+labels:
+  app: operator-catalog-utils
+parameters:
+- description: ""
+  name: NAME
+  required: true
+  value: "operator-catalog-utils"
+- description: "Random 4 char string to append to NAME"
+  name: RANDOM
+  generate: expression
+  from: "[a-zA-Z0-9]{5}"
+- description: "The image tag for the Spring Boot Service"
+  name: "IMAGE"
+  required: true
+- description: "The PVC which will hold the operatorhub tar.gz file this service will reference"
+  name: "OPERATORHUB_PVC"
+  required: true
+  value: "operatorhub-catalog"
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${NAME}
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: ${NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: ${NAME}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: ${NAME}
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app: ${NAME}
+        name: ${NAME}
+      spec:
+        affinity:
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - ${OPERATORHUB_PVC} 
+              topologyKey: "kubernetes.io/hostname" 
+        volumes:
+          - name: operatorhub
+            persistentVolumeClaim:
+              claimName: "OPERATORHUB_PVC"
+        containers:
+        - image: ${IMAGE}
+          imagePullPolicy: Always
+          name: ${NAME}
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          volumeMounts:
+            - mountPath: "/opt/operatorhub/"
+              name: operatorhub
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: ${NAME}
+  spec:
+    port:
+      targetPort: http
+    to:
+      kind: Service
+      name: ${NAME}
+      weight: 100
+    wildcardPolicy: None
