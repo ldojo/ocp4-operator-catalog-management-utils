@@ -1,6 +1,6 @@
-# Openshift 4.x Operator Catalog Utilities
+# Openshift 4.x Operator Catalog Utilities API Service
 
-This project contains an API service which provides some useful endpoints for managing tar.gz Operator package manifest archives, as described in [Openshift 4.x Operator Catalog Management project](https://github.com/ldojo/ocp4-operator-catalog-management).
+This project contains a Spring Boot API service which provides some useful endpoints for managing tar.gz Operator package manifest archives, as described in [Openshift 4.x Operator Catalog Management project](https://github.com/ldojo/ocp4-operator-catalog-management). 
 
 To build/launch the api service with Podman or Docker:
 
@@ -11,7 +11,7 @@ podman run --rm -it -p 8080:8080 <image>
 
 Launched on port 8080, you can go to http://host:8080/swagger-ui.html#/operator-catalog-util-apis and try out the apis via the Swagger interface
 
-The apis provide useful utilities for mirroring by processing the Operator package manifest tar.gz archives as described in the [Openshift 4.x Operator Catalog Management project](https://github.com/ldojo/ocp4-operator-catalog-management/blob/master/README.md#day-1). The utilities are capable of processing the package manifest Yaml files, and extracting the relevant image references that may be needed for applying mirroring in an Openshift 4 disconnected environment. 
+The apis provide useful utilities for mirroring, listing images referenced in the catalog, searching for Operator Details based on image, etc.., by processing the Operator package manifest tar.gz archives as described in the [Openshift 4.x Operator Catalog Management project](https://github.com/ldojo/ocp4-operator-catalog-management/blob/master/README.md#day-1). 
 
 Here are some examples using curl. Note that you can try these same apis right in the Swagger UI in your Browser by going to http://host:8080/swagger-ui.html#/operator-catalog-util-apis
 
@@ -82,3 +82,5 @@ run this api, passing the mirrors json map file, and a tar.gz package manifest f
 curl -X POST "http://localhost:8080/applyImageMirrors" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "json-mirrors-file=@mirrors.json;type=application/json" -F "package-manifest-file=@operator-catalog-dev-1.0.3.tar.gz;type=application/gzip" > operator-catalog-dev-mirrored-1.0.3.tar.gz 
 ```
 The result `operator-catalog-dev-mirrored-1.0.3.tar.gz` file will have the same content as the input `operator-catalog-dev-1.0.3.tar.gz`, but with the mirrors applied to all of the image references in the Yaml. 
+
+
