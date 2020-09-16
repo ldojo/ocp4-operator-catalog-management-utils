@@ -72,7 +72,8 @@ public class OperatorCatalogCache {
 				OperatorCatalogCache.OPERATOR_HUB_FILE_LMT = operatorHubFile.lastModified();
 				logger.info("Successfully populated cache with " + operatorCache.size() + " operators!");
 			} catch (IOException e) {
-				e.printStackTrace();
+				String errMsg = "IOException caught loading the Operathub Cache from file " + operatorHubFilePath + " : " + e.getMessage();
+				throw new RuntimeException(errMsg);
 			}
 		}
 
