@@ -1,50 +1,38 @@
 package redhat.ocp4.operators.catalog.utils.api;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.micrometer.core.instrument.util.IOUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import redhat.ocp4.operators.catalog.utils.GtarUtil;
+import redhat.ocp4.operators.catalog.utils.cache.OperatorCatalogCache;
 import redhat.ocp4.operators.catalog.utils.dto.OperatorDetails;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @Api(value = "Operator Catalog Management Apis")
 @RestController
 public class OperatorCatalogUtilApis {
-	
-	@Value("${operatorhub.tar.gz.file:/opt/operatorhub/operatorhub.tar.gz}")
-	private String operatorHubFilePath;
+
+	@Autowired
+	private OperatorCatalogCache operatorCatalogCache;
 
 	@ApiOperation(value = "produces a unique list of all of the images referenced in a tar.gz catalog manifests file")
 	@PostMapping("/listAllImagesInCatalogManifests")
@@ -101,31 +89,24 @@ public class OperatorCatalogUtilApis {
 	public List<String> listRegistriesInCatalogManifests(@RequestParam("file") MultipartFile file) throws IOException{
 		return GtarUtil.registriesinGtarArchive(file.getInputStream());
 	}
-	
+
 	@ApiOperation(value = "returns a list of operators that an image belongs to, by referencing the tar.gz file sources that is passed")
 	@PostMapping("/listOperatorDetails")
 	public Map<String,List<OperatorDetails>> listImageOperatorDetails(@RequestParam(value="file") MultipartFile file) throws IOException {
 		return GtarUtil.imageOperatorInfo(file.getInputStream());
 	}
-	
+
 	@ApiOperation(value = "returns a list of operators that an image belongs to, by referencing the tar.gz file sources that is passed")
-	@PostMapping("/images/operators")
-	public List<String> listOperatorsForImageFromCatalog(@RequestParam("name") String imageName, @RequestParam(value="file") MultipartFile file) throws IOException {
-		return GtarUtil.operatorInfoFromImage(imageName, file.getInputStream()).stream().map(details -> details.getOperatorName()).collect(Collectors.toList());
+	@PostMapping("/image/operators")
+	public List<OperatorDetails> listOperatorsForImageFromCatalog(@RequestParam("name") String imageName, @RequestParam(value="file") MultipartFile file) throws IOException {
+		return GtarUtil.operatorInfoFromImage(imageName, file.getInputStream());
 	}
-	
-	
-	@SuppressWarnings("resource")
-	@ApiOperation(value = "returns a list of operators that an image belongs to, by referencing an internal Operator Catalog tar.gz file. Will return a 500 if no internal Operator Catalog tar.gz file has been configured or mounted to this service")
-	@GetMapping("/images/operators")
-	public List<String> listOperatorsForImage(@RequestParam("name") String imageName) throws IOException {
-		File operatorHubFile = new File(operatorHubFilePath);
-		if (operatorHubFile.exists()) {
-			return GtarUtil.operatorInfoFromImage(imageName, new FileInputStream(operatorHubFile)).stream().map(details -> details.getOperatorName()).collect(Collectors.toList());
-		}else {
-			String errMsg = "operatorhub tar.gz file does not exist at configured path " + operatorHubFilePath + " to serve GET '/images/operators/' request! ";
-			Logger.getLogger(this.getClass().getName()).severe(errMsg);
-			throw new RuntimeException(errMsg);
-		}
+
+	@ApiOperation(value = "returns a list of operators that an image belongs to.")
+	@GetMapping("/image/operators")
+	public Map<String, List<OperatorDetails>> listOperatorsForImages(
+			@RequestParam("name") List<String> imageName
+	) {
+		return operatorCatalogCache.getOperatorsForImages(imageName);
 	}
 }

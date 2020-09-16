@@ -3,9 +3,6 @@ package redhat.ocp4.operators.catalog.utils;
 import java.util.HashMap;
 import java.util.Map;
 
-import redhat.ocp4.operators.catalog.utils.ImageContentSourcePolicyYaml.Mirror;
-import redhat.ocp4.operators.catalog.utils.ImageContentSourcePolicyYaml.Spec;
-
 /**
  * A Java Bean for transformation of Yaml ImagetContentSourcePolicy documents
  * @author lshulman

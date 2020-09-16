@@ -5,7 +5,7 @@ LABEL maintainer="Lev Shulman <lshulman@redhat.com>"
 
 RUN mkdir /app
 
-COPY operator-utils-api-service /app/ 
+COPY operator-utils-api-service /app/
 EXPOSE 8080
 WORKDIR /app/
 CMD ./mvnw spring-boot:run

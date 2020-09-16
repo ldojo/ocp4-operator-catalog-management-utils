@@ -85,6 +85,21 @@
 		<artifactId>mockito-core</artifactId>
 		<scope>test</scope>
 	</dependency>
+
+		<!-- If we use Hazelcast, we can scale up if necessary. If not needed, just rip it out -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-all</artifactId>
+			<version>4.0.2</version>
+		</dependency>
+
+		<!-- For testing the cache population -->
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock-jre8</artifactId>
+			<version>2.27.2</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
