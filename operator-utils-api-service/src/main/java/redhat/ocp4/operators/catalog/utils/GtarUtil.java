@@ -146,7 +146,7 @@ public class GtarUtil {
 	 * @return a Set of image URIs
 	 */
 	@SuppressWarnings("unchecked")
-	public static Set<String> imagesFromYamlMap(Map yamlData) {
+	private static Set<String> imagesFromYamlMap(Map yamlData) {
 		TreeSet<String> set = new TreeSet<String>();
 		yamlData.forEach((j, k) -> {
 			if (j instanceof String && Arrays.asList("image", "containerImage", "baseImage").stream()

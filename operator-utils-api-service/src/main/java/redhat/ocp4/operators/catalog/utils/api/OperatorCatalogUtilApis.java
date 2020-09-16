@@ -97,19 +97,16 @@ public class OperatorCatalogUtilApis {
 	}
 
 	@ApiOperation(value = "returns a list of operators that an image belongs to, by referencing the tar.gz file sources that is passed")
-	@PostMapping("/images/operators")
-	public List<String> listOperatorsForImageFromCatalog(@RequestParam("name") String imageName, @RequestParam(value="file") MultipartFile file) throws IOException {
-		return GtarUtil.operatorInfoFromImage(imageName, file.getInputStream()).stream().map(details -> details.getOperatorName()).collect(Collectors.toList());
+	@PostMapping("/image/operators")
+	public List<OperatorDetails> listOperatorsForImageFromCatalog(@RequestParam("name") String imageName, @RequestParam(value="file") MultipartFile file) throws IOException {
+		return GtarUtil.operatorInfoFromImage(imageName, file.getInputStream());
 	}
 
 	@ApiOperation(value = "returns a list of operators that an image belongs to.")
-	@GetMapping("/images/operators")
-	public Map<String, List<OperatorDetails>> listOperatorsForImage(
-			@RequestParam("name") List<String> imageName,
-			@RequestParam("force-refresh") boolean forceRefresh
+	@GetMapping("/image/operators")
+	public Map<String, List<OperatorDetails>> listOperatorsForImages(
+			@RequestParam("name") List<String> imageName
 	) {
-		if(forceRefresh)
-			operatorCatalogCache.populateCache();
 		return operatorCatalogCache.getOperatorsForImages(imageName);
 	}
 }
